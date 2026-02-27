@@ -15,7 +15,7 @@ export function TweetCard({ tweet }: TweetCardProps) {
         href={tweet.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="group relative block rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/20"
+        className="group relative block rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/20 aspect-[4/3] overflow-hidden"
       >
         {tweet.text && (
           <p className="text-sm text-foreground leading-relaxed line-clamp-4">
@@ -49,14 +49,14 @@ export function TweetCard({ tweet }: TweetCardProps) {
       href={tweet.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group relative block rounded-lg overflow-hidden bg-muted"
+      className="group relative block rounded-lg overflow-hidden bg-muted aspect-[4/3]"
     >
       <Image
         src={tweet.imageUrl}
         alt={tweet.text ?? "Tweet image"}
         width={720}
         height={480}
-        className="w-full h-auto object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+        className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
         unoptimized
       />
       {/* Hover overlay */}
