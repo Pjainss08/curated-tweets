@@ -23,7 +23,14 @@ export async function POST(request: Request) {
   }
 
   if (!authenticated) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({
+      error: "Unauthorized",
+      debug: {
+        hasApiSecret: !!apiSecret,
+        apiSecretLength: apiSecret?.length ?? 0,
+        authHeaderPrefix: authHeader?.substring(0, 15) ?? "none",
+      }
+    }, { status: 401 })
   }
 
   // Fetch all tweets that haven't been enriched yet
