@@ -76,6 +76,47 @@ create policy "Authenticated users can delete tweets"
   to authenticated
   using (true);
 
+-- Add metadata columns to tweets (for caching enrichment data)
+-- Run this if you already have the tweets table:
+-- ALTER TABLE tweets ADD COLUMN image_url text;
+-- ALTER TABLE tweets ADD COLUMN author_name text;
+-- ALTER TABLE tweets ADD COLUMN author_handle text;
+-- ALTER TABLE tweets ADD COLUMN text_content text;
+
+-- Submissions table (public suggestions)
+create table submissions (
+  id uuid primary key default uuid_generate_v4(),
+  url text not null,
+  submitted_by text,
+  status text default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  created_at timestamptz default now() not null
+);
+
+alter table submissions enable row level security;
+
+-- Submissions: anyone can insert
+create policy "Anyone can submit"
+  on submissions for insert
+  to anon, authenticated
+  with check (true);
+
+-- Submissions: only authenticated can read/update/delete
+create policy "Authenticated users can read submissions"
+  on submissions for select
+  to authenticated
+  using (true);
+
+create policy "Authenticated users can update submissions"
+  on submissions for update
+  to authenticated
+  using (true)
+  with check (true);
+
+create policy "Authenticated users can delete submissions"
+  on submissions for delete
+  to authenticated
+  using (true);
+
 -- Seed categories (adjust as needed)
 insert into categories (name, slug) values
   ('Design', 'design'),

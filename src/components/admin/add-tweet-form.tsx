@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
 import { extractTweetId } from "@/lib/tweet-utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -38,22 +37,30 @@ export function AddTweetForm({ categories }: AddTweetFormProps) {
       return
     }
 
-    const supabase = createClient()
-    const { error } = await supabase.from("tweets").insert({
-      url: url.trim(),
-      category_id: categoryId,
-      note: note.trim() || null,
-    })
+    try {
+      const res = await fetch("/api/tweets/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: url.trim(),
+          category_id: categoryId,
+          note: note.trim() || null,
+        }),
+      })
 
-    if (error) {
-      setStatus("error")
-      setErrorMsg(error.message)
-    } else {
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Failed to add tweet")
+      }
+
       setStatus("success")
       setUrl("")
       setNote("")
       router.refresh()
       setTimeout(() => setStatus("idle"), 2000)
+    } catch (err) {
+      setStatus("error")
+      setErrorMsg(err instanceof Error ? err.message : "Failed to add tweet")
     }
   }
 

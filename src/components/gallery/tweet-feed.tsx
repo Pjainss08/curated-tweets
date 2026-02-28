@@ -4,13 +4,13 @@ import { useState, useEffect, useCallback } from "react"
 import { TweetCard } from "./tweet-card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { Category, EnrichedTweet } from "@/lib/types"
+import type { Category, Tweet } from "@/lib/types"
 
 const PAGE_SIZE = 20
 
 interface TweetFeedProps {
   categories: Category[]
-  initialTweets: EnrichedTweet[]
+  initialTweets: Tweet[]
   activeCategorySlug: string
 }
 
@@ -19,7 +19,7 @@ export function TweetFeed({
   initialTweets,
   activeCategorySlug,
 }: TweetFeedProps) {
-  const [tweets, setTweets] = useState<EnrichedTweet[]>(initialTweets)
+  const [tweets, setTweets] = useState<Tweet[]>(initialTweets)
   const [page, setPage] = useState(0)
   const [hasMore, setHasMore] = useState(initialTweets.length === PAGE_SIZE)
   const [loading, setLoading] = useState(false)
@@ -36,7 +36,7 @@ export function TweetFeed({
           page: pageNum.toString(),
         })
         const res = await fetch(`/api/tweets?${params}`)
-        const data: EnrichedTweet[] = await res.json()
+        const data: Tweet[] = await res.json()
 
         setTweets((prev) => (replace ? data : [...prev, ...data]))
         setHasMore(data.length === PAGE_SIZE)
@@ -70,9 +70,11 @@ export function TweetFeed({
   if (initialLoad) {
     return (
       <div className="max-w-[1100px] mx-auto px-4 sm:px-0 pt-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-[4/3] w-full rounded-lg" />
+            <div key={i} className="mb-4 break-inside-avoid">
+              <Skeleton className="aspect-[4/3] w-full rounded-lg" />
+            </div>
           ))}
         </div>
       </div>
@@ -81,9 +83,15 @@ export function TweetFeed({
 
   return (
     <div className="max-w-[1100px] mx-auto px-4 sm:px-0 pt-8">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {tweets.map((tweet) => (
-          <TweetCard key={tweet.id} tweet={tweet} />
+      <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
+        {tweets.map((tweet, i) => (
+          <div
+            key={tweet.id}
+            className="mb-4 break-inside-avoid animate-in fade-in duration-300"
+            style={{ animationDelay: `${Math.min(i * 50, 500)}ms`, animationFillMode: "both" }}
+          >
+            <TweetCard tweet={tweet} />
+          </div>
         ))}
       </div>
 

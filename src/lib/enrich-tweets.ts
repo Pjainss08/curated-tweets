@@ -1,45 +1,39 @@
 import { getTweet } from "react-tweet/api"
 import { extractTweetId } from "./tweet-utils"
-import type { Tweet, EnrichedTweet } from "./types"
 
-export async function enrichTweets(tweets: Tweet[]): Promise<EnrichedTweet[]> {
-  const results = await Promise.allSettled(
-    tweets.map(async (tweet): Promise<EnrichedTweet> => {
-      const tweetId = extractTweetId(tweet.url)
-      if (!tweetId) {
-        return { ...tweet, imageUrl: null, authorName: null, authorHandle: null, text: null }
-      }
+export interface TweetMetadata {
+  image_url: string | null
+  author_name: string | null
+  author_handle: string | null
+  text_content: string | null
+}
 
-      try {
-        const data = await getTweet(tweetId)
-        if (!data) {
-          return { ...tweet, imageUrl: null, authorName: null, authorHandle: null, text: null }
-        }
+export async function enrichSingleTweet(url: string): Promise<TweetMetadata> {
+  const tweetId = extractTweetId(url)
+  if (!tweetId) {
+    return { image_url: null, author_name: null, author_handle: null, text_content: null }
+  }
 
-        // Get the first photo or video thumbnail
-        let imageUrl: string | null = null
-        if (data.photos && data.photos.length > 0) {
-          imageUrl = data.photos[0].url
-        } else if (data.video?.poster) {
-          imageUrl = data.video.poster
-        }
+  try {
+    const data = await getTweet(tweetId)
+    if (!data) {
+      return { image_url: null, author_name: null, author_handle: null, text_content: null }
+    }
 
-        return {
-          ...tweet,
-          imageUrl,
-          authorName: data.user?.name ?? null,
-          authorHandle: data.user?.screen_name ?? null,
-          text: data.text ?? null,
-        }
-      } catch {
-        return { ...tweet, imageUrl: null, authorName: null, authorHandle: null, text: null }
-      }
-    })
-  )
+    let image_url: string | null = null
+    if (data.photos && data.photos.length > 0) {
+      image_url = data.photos[0].url
+    } else if (data.video?.poster) {
+      image_url = data.video.poster
+    }
 
-  return results.map((result, i) =>
-    result.status === "fulfilled"
-      ? result.value
-      : { ...tweets[i], imageUrl: null, authorName: null, authorHandle: null, text: null }
-  )
+    return {
+      image_url,
+      author_name: data.user?.name ?? null,
+      author_handle: data.user?.screen_name ?? null,
+      text_content: data.text ?? null,
+    }
+  } catch {
+    return { image_url: null, author_name: null, author_handle: null, text_content: null }
+  }
 }

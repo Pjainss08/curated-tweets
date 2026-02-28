@@ -1,30 +1,30 @@
 "use client"
 
 import Image from "next/image"
-import type { EnrichedTweet } from "@/lib/types"
+import type { Tweet } from "@/lib/types"
 
 interface TweetCardProps {
-  tweet: EnrichedTweet
+  tweet: Tweet
 }
 
 export function TweetCard({ tweet }: TweetCardProps) {
-  if (!tweet.imageUrl) {
+  if (!tweet.image_url) {
     // Fallback for tweets without images: text-only card
     return (
       <a
         href={tweet.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="group relative block rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/20 aspect-[4/3] overflow-hidden"
+        className="group relative block rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/20 overflow-hidden"
       >
-        {tweet.text && (
-          <p className="text-sm text-foreground leading-relaxed line-clamp-4">
-            {tweet.text}
+        {tweet.text_content && (
+          <p className="text-sm text-foreground leading-relaxed line-clamp-6">
+            {tweet.text_content}
           </p>
         )}
-        {tweet.authorHandle && (
+        {tweet.author_handle && (
           <p className="text-xs text-muted-foreground mt-3">
-            @{tweet.authorHandle}
+            @{tweet.author_handle}
           </p>
         )}
         {tweet.note && (
@@ -49,14 +49,14 @@ export function TweetCard({ tweet }: TweetCardProps) {
       href={tweet.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group relative block rounded-lg overflow-hidden bg-muted aspect-[4/3]"
+      className="group relative block rounded-lg overflow-hidden bg-muted"
     >
       <Image
-        src={tweet.imageUrl}
-        alt={tweet.text ?? "Tweet image"}
+        src={tweet.image_url}
+        alt={tweet.text_content ?? "Tweet image"}
         width={720}
-        height={480}
-        className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+        height={540}
+        className="w-full h-auto object-cover transition-transform duration-200 group-hover:scale-[1.02]"
         unoptimized
       />
       {/* Hover overlay */}

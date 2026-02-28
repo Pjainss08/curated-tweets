@@ -12,12 +12,17 @@ export interface Tweet {
   note: string | null
   pinned: boolean
   created_at: string
+  image_url: string | null
+  author_name: string | null
+  author_handle: string | null
+  text_content: string | null
   categories?: Category
 }
 
-export interface EnrichedTweet extends Tweet {
-  imageUrl: string | null
-  authorName: string | null
-  authorHandle: string | null
-  text: string | null
+export interface Submission {
+  id: string
+  url: string
+  submitted_by: string | null
+  status: "pending" | "approved" | "rejected"
+  created_at: string
 }

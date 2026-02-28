@@ -14,10 +14,17 @@ export default async function AdminPage() {
     .select("*, categories(*)")
     .order("created_at", { ascending: false })
 
+  const { data: submissions } = await supabase
+    .from("submissions")
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+
   return (
     <AdminDashboard
       categories={categories ?? []}
       tweets={tweets ?? []}
+      submissions={submissions ?? []}
     />
   )
 }

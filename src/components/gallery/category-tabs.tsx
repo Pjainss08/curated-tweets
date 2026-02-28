@@ -7,12 +7,14 @@ interface CategoryTabsProps {
   categories: Category[]
   activeCategory: string
   onCategoryChange: (slug: string) => void
+  categoryCounts: Record<string, number>
 }
 
 export function CategoryTabs({
   categories,
   activeCategory,
   onCategoryChange,
+  categoryCounts,
 }: CategoryTabsProps) {
   return (
     <div className="px-4">
@@ -24,6 +26,11 @@ export function CategoryTabs({
               className="text-sm px-3 py-1.5 rounded-md data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=inactive]:text-muted-foreground shrink-0"
             >
               All
+              {categoryCounts.all > 0 && (
+                <span className="ml-1.5 text-xs opacity-60">
+                  {categoryCounts.all}
+                </span>
+              )}
             </TabsTrigger>
             {categories.map((cat) => (
               <TabsTrigger
@@ -32,6 +39,11 @@ export function CategoryTabs({
                 className="text-sm px-3 py-1.5 rounded-md data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=inactive]:text-muted-foreground shrink-0"
               >
                 {cat.name}
+                {(categoryCounts[cat.slug] ?? 0) > 0 && (
+                  <span className="ml-1.5 text-xs opacity-60">
+                    {categoryCounts[cat.slug]}
+                  </span>
+                )}
               </TabsTrigger>
             ))}
           </TabsList>

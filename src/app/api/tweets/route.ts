@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { enrichTweets } from "@/lib/enrich-tweets"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -32,7 +31,6 @@ export async function GET(request: Request) {
   }
 
   const { data: tweets } = await query
-  const enriched = await enrichTweets(tweets ?? [])
 
-  return NextResponse.json(enriched)
+  return NextResponse.json(tweets ?? [])
 }

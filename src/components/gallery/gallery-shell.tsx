@@ -3,14 +3,15 @@
 import { useState } from "react"
 import { CategoryTabs } from "./category-tabs"
 import { TweetFeed } from "./tweet-feed"
-import type { Category, EnrichedTweet } from "@/lib/types"
+import type { Category, Tweet } from "@/lib/types"
 
 interface GalleryShellProps {
   categories: Category[]
-  initialTweets: EnrichedTweet[]
+  initialTweets: Tweet[]
+  categoryCounts: Record<string, number>
 }
 
-export function GalleryShell({ categories, initialTweets }: GalleryShellProps) {
+export function GalleryShell({ categories, initialTweets, categoryCounts }: GalleryShellProps) {
   const [activeCategory, setActiveCategory] = useState("all")
 
   return (
@@ -19,6 +20,7 @@ export function GalleryShell({ categories, initialTweets }: GalleryShellProps) {
         categories={categories}
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
+        categoryCounts={categoryCounts}
       />
       <TweetFeed
         categories={categories}
