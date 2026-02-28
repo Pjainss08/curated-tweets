@@ -10,8 +10,8 @@ export interface ClientTweetMetadata {
 }
 
 /**
- * Fetches tweet metadata from Twitter's syndication API directly in the browser.
- * This works because browsers aren't blocked by Twitter, unlike Vercel's servers.
+ * Fetches tweet metadata via fxtwitter API.
+ * Works from both browsers (CORS enabled) and servers (not blocked by Twitter).
  */
 export async function enrichTweetClient(url: string): Promise<ClientTweetMetadata> {
   const empty: ClientTweetMetadata = {
@@ -24,35 +24,39 @@ export async function enrichTweetClient(url: string): Promise<ClientTweetMetadat
   const tweetId = extractTweetId(url)
   if (!tweetId) return empty
 
+  // Extract username from URL for fxtwitter API path
+  let username = "i"
   try {
-    // react-tweet's syndication endpoint — works from browsers
-    const token = ((Number(tweetId) / 1e15) * Math.PI)
-      .toString(36)
-      .replace(/(0+|\.)/g, "")
+    const parsed = new URL(url.trim())
+    const segments = parsed.pathname.split("/").filter(Boolean)
+    if (segments.length > 0) username = segments[0]
+  } catch {
+    // fallback username
+  }
 
+  try {
     const res = await fetch(
-      `https://cdn.syndication.twimg.com/tweet-result?id=${tweetId}&lang=en&token=${token}`,
+      `https://api.fxtwitter.com/${username}/status/${tweetId}`,
     )
 
     if (!res.ok) return empty
 
-    const data = await res.json()
-    if (!data) return empty
+    const json = await res.json()
+    const tweet = json.tweet
+    if (!tweet) return empty
 
     let image_url: string | null = null
-    if (data.photos && data.photos.length > 0) {
-      image_url = data.photos[0].url
-    } else if (data.video?.poster) {
-      image_url = data.video.poster
-    } else if (data.mediaDetails && data.mediaDetails.length > 0) {
-      image_url = data.mediaDetails[0].media_url_https ?? null
+    if (tweet.media?.photos && tweet.media.photos.length > 0) {
+      image_url = tweet.media.photos[0].url
+    } else if (tweet.media?.videos && tweet.media.videos.length > 0) {
+      image_url = tweet.media.videos[0].thumbnail_url ?? null
     }
 
     return {
       image_url,
-      author_name: data.user?.name ?? null,
-      author_handle: data.user?.screen_name ?? null,
-      text_content: data.text ?? null,
+      author_name: tweet.author?.name ?? null,
+      author_handle: tweet.author?.screen_name ?? null,
+      text_content: tweet.text ?? null,
     }
   } catch {
     return empty

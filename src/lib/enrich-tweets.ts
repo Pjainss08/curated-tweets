@@ -8,9 +8,8 @@ export interface TweetMetadata {
 }
 
 /**
- * Server-side fallback using Twitter's oEmbed API.
- * oEmbed is an official API that works from Vercel servers (not blocked).
- * It returns author_name and limited text, but no images.
+ * Server-side enrichment via fxtwitter API.
+ * Works from Vercel servers (not blocked by Twitter, unlike syndication API).
  */
 export async function enrichSingleTweet(url: string): Promise<TweetMetadata> {
   const empty: TweetMetadata = {
@@ -23,38 +22,39 @@ export async function enrichSingleTweet(url: string): Promise<TweetMetadata> {
   const tweetId = extractTweetId(url)
   if (!tweetId) return empty
 
+  // Extract username from URL for fxtwitter API path
+  let username = "i"
   try {
-    const oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&omit_script=true`
-    const res = await fetch(oembedUrl)
+    const parsed = new URL(url.trim())
+    const segments = parsed.pathname.split("/").filter(Boolean)
+    if (segments.length > 0) username = segments[0]
+  } catch {
+    // fallback username
+  }
+
+  try {
+    const res = await fetch(
+      `https://api.fxtwitter.com/${username}/status/${tweetId}`,
+    )
+
     if (!res.ok) return empty
 
-    const data = await res.json()
+    const json = await res.json()
+    const tweet = json.tweet
+    if (!tweet) return empty
 
-    // oEmbed returns author_name like "Author Name" and author_url like "https://twitter.com/handle"
-    let author_handle: string | null = null
-    if (data.author_url) {
-      const match = data.author_url.match(/(?:twitter\.com|x\.com)\/([^/]+)/)
-      if (match) author_handle = match[1]
-    }
-
-    // Extract text from the HTML blockquote
-    let text_content: string | null = null
-    if (data.html) {
-      const textMatch = data.html.match(/<p[^>]*>([\s\S]*?)<\/p>/)
-      if (textMatch) {
-        text_content = textMatch[1]
-          .replace(/<a[^>]*>(.*?)<\/a>/g, "$1")
-          .replace(/<br\s*\/?>/g, "\n")
-          .replace(/<[^>]+>/g, "")
-          .trim()
-      }
+    let image_url: string | null = null
+    if (tweet.media?.photos && tweet.media.photos.length > 0) {
+      image_url = tweet.media.photos[0].url
+    } else if (tweet.media?.videos && tweet.media.videos.length > 0) {
+      image_url = tweet.media.videos[0].thumbnail_url ?? null
     }
 
     return {
-      image_url: null, // oEmbed doesn't return images
-      author_name: data.author_name ?? null,
-      author_handle,
-      text_content,
+      image_url,
+      author_name: tweet.author?.name ?? null,
+      author_handle: tweet.author?.screen_name ?? null,
+      text_content: tweet.text ?? null,
     }
   } catch {
     return empty
