@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { extractTweetId } from "@/lib/tweet-utils"
+import { enrichTweetClient } from "@/lib/enrich-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { Category } from "@/lib/types"
@@ -38,6 +39,9 @@ export function AddTweetForm({ categories }: AddTweetFormProps) {
     }
 
     try {
+      // Enrich in the browser where Twitter's syndication API works
+      const metadata = await enrichTweetClient(url)
+
       const res = await fetch("/api/tweets/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -45,6 +49,10 @@ export function AddTweetForm({ categories }: AddTweetFormProps) {
           url: url.trim(),
           category_id: categoryId,
           note: note.trim() || null,
+          image_url: metadata.image_url,
+          author_name: metadata.author_name,
+          author_handle: metadata.author_handle,
+          text_content: metadata.text_content,
         }),
       })
 
@@ -114,7 +122,7 @@ export function AddTweetForm({ categories }: AddTweetFormProps) {
       </div>
 
       <Button type="submit" disabled={status === "loading"}>
-        {status === "loading" ? "Adding..." : "Add Tweet"}
+        {status === "loading" ? "Enriching & adding..." : "Add Tweet"}
       </Button>
 
       {status === "success" && (
